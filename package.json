@@ -1,0 +1,23 @@
+{
+  "name": "fxfl",
+  "version": "0.0.0",
+  "description": "A directive library for fixed / fluid layout in Angular.js",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.8.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QueueHammer/fxfl.git"
+  },
+  "author": "Christopher Smith (QueueHammer)",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/QueueHammer/fxfl/issues"
+  },
+  "homepage": "https://github.com/QueueHammer/fxfl"
+}
