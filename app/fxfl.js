@@ -15,6 +15,57 @@ $(function () {
 });
 
 angular.module('fxfl', [])
+.directive('fxflPannel', function () {
+  var id = /\d\.(\d+)/.exec(Math.random().toString())[1];
+  var callbacks = [];
+  return {
+    restrict: 'A',
+    require: '?fxflPannel',
+    scope: {
+      fxflPannel:'@',
+      fxflPannelWidth:'@',
+      fxflPannelHeight:'@'
+    },
+    controller: function ($element, $timeout) {
+      this.register = function () {};
+    },
+    link: function (s, e, a, c) {
+      
+      //get any values of attributes we care about
+      var width = a.fxflPannelWidth,
+          height = a.fxflPannelHeight;
+      
+      //If both are set, that's not right so let people know.
+      if(width !== undefined && height !== undefined) throw [
+        'A panel can only size for width or height not both.',
+        'Set only the fxfl-pannel-width or the fxfl-pannel-height attribute.'
+      ].join(' ');
+      
+      //Is this pannel for width (horizontal) or height (vertical)?
+      var typeIsWidth = width !== undefined;
+      
+      //Choose the sizing function
+      var sizeFunk = typeIsWidth ? e.width : e.height;
+      
+      //Create the object that will register with the controller
+      var regObj = {
+        id:id,
+        type: typeIsWidth ? 'width' : 'height',
+        getSize:function () {
+          return typeIsWidth ? a.fxflPannelWidth : a.fxflPannelHeight;
+        },
+        useSize:function () {
+          sizeFunk(a.fxflHzPannel);
+        },
+        setSize:function (s) {
+          sizeFunk(s);
+        }
+      };
+      
+      c.register(regObj);
+    }
+  };
+})
 .directive('fxflContainer', function () {
   function noop() { return 0;}
   return {
