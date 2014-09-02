@@ -2,20 +2,19 @@ body {
   position: fixed;
   width: 100%;
   height: 100%;
+  padding:0;
+  margin:0;
 }
 
 .testBox {
   height:100%;
 }
 
-[fxfl-container], [fxfl-hz-pannel] {
+[fxfl-pannel] {
   width: 100%;
   height: 100%;
 }
 
-[fxfl-main] {
-  clear: both;
-}
-[fxfl-hz-pannel] {
-  float: left;
+[fxfl-width] {
+  float:left;
 }

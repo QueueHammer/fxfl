@@ -11,17 +11,24 @@
 </head>
 <body ng-app="fxfl" class="vt">
   <div class="testBox">
-    <div fxfl-container>
-      <div fxfl-hz-pannel="250"></div>
-      <div fxfl-hz-pannel="66%" fxfl-container>
-        <div fxfl-vt-pannel="20"></div>
-        <div fxfl-vt-pannel="50%"></div>
-        <div fxfl-vt-pannel="20"></div>
-        <div fxfl-vt-pannel="50%"></div>
+    <div fxfl-pannel>
+      <div fxfl-pannel fxfl-width="250">
+        <div fxfl-pannel fxfl-height="50%"></div>
+        <div fxfl-pannel fxfl-height="50%"></div>
       </div>
-      <div fxfl-hz-pannel="75"></div>
-      <div fxfl-hz-pannel="34%"></div>
-      <div fxfl-hz-pannel="100"></div>
+      <div fxfl-pannel fxfl-width="66%">
+        <div fxfl-pannel fxfl-height="250"></div>
+        <div fxfl-pannel fxfl-height="66%">
+          <div fxfl-pannel fxfl-width="50%"></div>
+          <div fxfl-pannel fxfl-width="50%"></div>
+        </div>
+        <div fxfl-pannel fxfl-height="50"></div>
+        <div fxfl-pannel fxfl-height="34%"></div>
+        <div fxfl-pannel fxfl-height="125"></div>
+      </div>
+      <div fxfl-pannel fxfl-width="50"></div>
+      <div fxfl-pannel fxfl-width="34%"></div>
+      <div fxfl-pannel fxfl-width="125"></div>
     </div>
   </div>
 </body>

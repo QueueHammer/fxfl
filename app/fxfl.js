@@ -16,96 +16,60 @@ $(function () {
 
 angular.module('fxfl', [])
 .directive('fxflPannel', function () {
-  var id = /\d\.(\d+)/.exec(Math.random().toString())[1];
-  var callbacks = [];
   return {
     restrict: 'A',
     require: '?fxflPannel',
     scope: {
-      fxflPannel:'@',
       fxflPannelWidth:'@',
       fxflPannelHeight:'@'
     },
-    controller: function ($element, $timeout) {
-      this.register = function () {};
-    },
-    link: function (s, e, a, c) {
-      
-      //get any values of attributes we care about
-      var width = a.fxflPannelWidth,
-          height = a.fxflPannelHeight;
-      
-      //If both are set, that's not right so let people know.
-      if(width !== undefined && height !== undefined) throw [
-        'A panel can only size for width or height not both.',
-        'Set only the fxfl-pannel-width or the fxfl-pannel-height attribute.'
-      ].join(' ');
-      
-      //Is this pannel for width (horizontal) or height (vertical)?
-      var typeIsWidth = width !== undefined;
-      
-      //Choose the sizing function
-      var sizeFunk = typeIsWidth ? e.width : e.height;
-      
-      //Create the object that will register with the controller
-      var regObj = {
-        id:id,
-        type: typeIsWidth ? 'width' : 'height',
-        getSize:function () {
-          return typeIsWidth ? a.fxflPannelWidth : a.fxflPannelHeight;
-        },
-        useSize:function () {
-          sizeFunk(a.fxflHzPannel);
-        },
-        setSize:function (s) {
-          sizeFunk(s);
-        }
-      };
-      
-      c.register(regObj);
-    }
-  };
-})
-.directive('fxflContainer', function () {
-  function noop() { return 0;}
-  return {
-    restrict: 'A',
-    require:'?fxflContainer',
-    controller: function($element, $timeout) {
-      //Establish types
-      var types = {
-          fxflHzPannel: function() { return $($element).width(); },
-          fxflVtPannel: function() { return $($element).height(); }
-      };
+    controller: function ($element, $attrs, $timeout) {
+      var id = (Math.floor(Math.random() * Math.pow(10, 17))).toString(36);
+      console.log('Controller', id);
       var pannels = {};
-      var type = null;
+      var type = '';
+      var sizeFunction = function() {
+        return type == 'width' ? $element.width() : $element.height();
+      };
       
-      //Setup interface for directives
       this.register = function (el) {
-        //If the element registering is not a vertical or horizontal
-        //for now we do not register it
-        if(!_.chain(types).keys().contains(el.type).value()) return;
+        //Register the element
+        if(pannels[el.id]) throw [
+          'This element is already registered with it\'s parent'
+        ].join(' ');
         
-        //If we do not have a type set it
-        if(!type) type = el.type;
+        //Add this element to the list of callbacks
+        pannels[el.id] =  el;
         
+        /*
         //When we have a type, if a different one registers error
         if(type !== el.type) throw [
           'One type of pannel allowed per container.',
           'This container is already of type: ' + type,
           'So ' + el.type + ' is therefore not allowed'
         ].join('\n');
+        */
+      };
+      
+      var deriveType = _.once(function () {
+        //There are no sizes to set if no elements have registered
+        if(_.size(pannels) === 0) return;
         
-        pannels[el.id] = el;
-      };
+        type = _.chain(pannels).pluck('type').first().value();
+        if(!_.all(pannels, function (p) { return type === p.type; }))
+          throw [
+          'One type of pannel allowed per container.',
+          'This container is already of type: ' + type,
+          'So only ' + type + ' is allowed'
+          ].join(' ');
+      });
       
-      //Allow directives to leave
-      this.unRegister = function (id) {
-        delete pannels[id];
-      };
-      
-      //This set the sizes of the child directives
       function setSizes() {
+        deriveType();
+        //There are no sizes to set if no elements have registered
+        if(_.size(pannels) === 0) return;
+        
+        //Has percent regex
         var hasPct = /(.+)%/;
         
         //Add all the staticly sized pannels
@@ -117,13 +81,16 @@ angular.module('fxfl', [])
         })
         //Update them incase they value changed since last time
         .reduce(function (m, p) {
-          p.useSize();
-          return m + Number(p.getSize());
+          //
+          var size = p.getSize();
+          p.setSize(size);
+          //Accumulate the reserved width
+          return m + Number(size);
         }, 0).value();
         
         //Determine what space is left. If less than nothing
-        //reconize that, and set it to 0;
-        var remaining = (types[type] || noop)() - staticSize;
+        //reconize that, and set it to 0;        
+        var remaining = sizeFunction() - staticSize;
         if(remaining < 0) { remaining = 0; }
         
         //Now work through the relitively spaced elements
@@ -141,55 +108,49 @@ angular.module('fxfl', [])
         });
       }
       
-      //Bind to the resize event
-      $(window).on('resize', _.throttle(setSizes, 50, {leading: false}));
-      $timeout(setSizes);
-    },
-    link:function (s, e, a, c) {
-      console.log(c);
-    }
-  };
-})
-.directive('fxflHzPannel', function () {
-  return {
-    restrict: 'A',
-    require: '^fxflContainer',
-    scope: {fxflHzPannel:'@'},
-    link:function (s, e, a, c) {
-      c.register({
-        id:/\d\.(\d+)/.exec(Math.random().toString())[1],
-        type:'fxflHzPannel',
+      //See if there is a controller above this directive
+      var controller = $element.parent().controller('fxflPannel');
+      
+      //If this is the top controller then we will set sizes on window resize
+      if(controller === undefined) {
+        $(window).on('resize', _.throttle(setSizes, 50, {leading: false}));
+        $timeout(function () {
+          setSizes();
+        });
+        return;
+      }
+      
+      //get any values of attributes we care about
+      var width = $attrs.fxflWidth,
+          height = $attrs.fxflHeight;
+      
+      //If both are set, that's not right so let people know.
+      if(width !== undefined && height !== undefined) throw [
+        'A panel can only size for width or height not both.',
+        'Set only the fxfl-pannel-width or the fxfl-pannel-height attribute.'
+      ].join(' ');
+      
+      //Is this pannel for width (horizontal) or height (vertical)?
+      var typeIsWidth = width !== undefined;
+      
+      //Choose the sizing function
+      var sizeFunk = function (s) {
+        return typeIsWidth ? $element.width(s) : $element.height(s);
+      };
+      
+      //Create the object that will register with the controller
+      controller.register({
+        id:id,
+        type: typeIsWidth ? 'width' : 'height',
         getSize:function () {
-          return a.fxflHzPannel;
+          return typeIsWidth ? $attrs.fxflWidth : $attrs.fxflHeight;
         },
-        useSize:function () {
-          e.width(a.fxflHzPannel);
-        },
-        setSize:function (w) {
-          e.width(w);
+        setSize:function (s) {
+          sizeFunk(s);
+          setSizes();
         }
       });
     }
   };
 })
-.directive('fxflVtPannel', function () {
-  return {
-    restrict: 'A',
-    require: '^fxflContainer',
-    link:function (s, e, a, c) {
-      c.register({
-        id:/\d\.(\d+)/.exec(Math.random().toString())[1],
-        type:'fxflVtPannel',
-        getSize:function () {
-          return a.fxflVtPannel;
-        },
-        useSize:function () {
-          e.height(a.fxflVtPannel);
-        },
-        setSize:function (h) {
-          e.height(h);
-        }
-      });
-    }
-  };
-});
+;
