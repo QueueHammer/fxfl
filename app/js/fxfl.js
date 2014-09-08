@@ -1,32 +1,19 @@
 /*global angular, _, $, window */
 /*jshint -W116 */
-console.clear();
-String.prototype.log = function () {
-  console.log(this.toString());
-};
-
-$(function () {
-  $('div').each(function () {
-    var h = Math.floor(Math.random() * 255);
-    var s = Math.floor(Math.random() * 100);
-    var l = Math.floor(Math.random() * 50) + 25;
-    $(this).css('background-color', 'hsla(' + h + ', ' + s + '%, ' + l + '%, 1)');
-  });
-});
 
 angular.module('fxfl', [])
-.directive('fxflPannel', function () {
+.directive('fxflPanel', function () {
   return {
     restrict: 'A',
-    require: '?fxflPannel',
+    require: '?fxflPanel',
     scope: {
-      fxflPannelWidth:'@',
-      fxflPannelHeight:'@'
+      fxflPanelWidth:'@',
+      fxflPanelHeight:'@'
     },
     controller: function ($element, $attrs, $timeout) {
       var id = (Math.floor(Math.random() * Math.pow(10, 17))).toString(36);
       console.log('Controller', id);
-      var pannels = {};
+      var panels = {};
       var type = '';
       var sizeFunction = function() {
         return type == 'width' ? $element.width() : $element.height();
@@ -34,17 +21,17 @@ angular.module('fxfl', [])
       
       this.register = function (el) {
         //Register the element
-        if(pannels[el.id]) throw [
+        if(panels[el.id]) throw [
           'This element is already registered with it\'s parent'
         ].join(' ');
         
         //Add this element to the list of callbacks
-        pannels[el.id] =  el;
+        panels[el.id] =  el;
         
         /*
         //When we have a type, if a different one registers error
         if(type !== el.type) throw [
-          'One type of pannel allowed per container.',
+          'One type of panel allowed per container.',
           'This container is already of type: ' + type,
           'So ' + el.type + ' is therefore not allowed'
         ].join('\n');
@@ -53,12 +40,12 @@ angular.module('fxfl', [])
       
       var deriveType = _.once(function () {
         //There are no sizes to set if no elements have registered
-        if(_.size(pannels) === 0) return;
+        if(_.size(panels) === 0) return;
         
-        type = _.chain(pannels).pluck('type').first().value();
-        if(!_.all(pannels, function (p) { return type === p.type; }))
+        type = _.chain(panels).pluck('type').first().value();
+        if(!_.all(panels, function (p) { return type === p.type; }))
           throw [
-          'One type of pannel allowed per container.',
+          'One type of panel allowed per container.',
           'This container is already of type: ' + type,
           'So only ' + type + ' is allowed'
           ].join(' ');
@@ -67,13 +54,13 @@ angular.module('fxfl', [])
       function setSizes() {
         deriveType();
         //There are no sizes to set if no elements have registered
-        if(_.size(pannels) === 0) return;
+        if(_.size(panels) === 0) return;
         
         //Has percent regex
         var hasPct = /(.+)%/;
         
-        //Add all the staticly sized pannels
-        var staticSize = _.chain(pannels)
+        //Add all the staticly sized panels
+        var staticSize = _.chain(panels)
         //filter for widths that don't end in %
         .filter(function (p) {
           var size = p.getSize();
@@ -94,7 +81,7 @@ angular.module('fxfl', [])
         if(remaining < 0) { remaining = 0; }
         
         //Now work through the relitively spaced elements
-        _.chain(pannels)
+        _.chain(panels)
         //filter for widths that "do" end in %
         .filter(function (p) {
           var width = p.getSize();
@@ -109,7 +96,7 @@ angular.module('fxfl', [])
       }
       
       //See if there is a controller above this directive
-      var controller = $element.parent().controller('fxflPannel');
+      var controller = $element.parent().controller('fxflPanel');
       
       //If this is the top controller then we will set sizes on window resize
       if(controller === undefined) {
@@ -127,10 +114,10 @@ angular.module('fxfl', [])
       //If both are set, that's not right so let people know.
       if(width !== undefined && height !== undefined) throw [
         'A panel can only size for width or height not both.',
-        'Set only the fxfl-pannel-width or the fxfl-pannel-height attribute.'
+        'Set only the fxfl-panel-width or the fxfl-panel-height attribute.'
       ].join(' ');
       
-      //Is this pannel for width (horizontal) or height (vertical)?
+      //Is this panel for width (horizontal) or height (vertical)?
       var typeIsWidth = width !== undefined;
       
       //Choose the sizing function

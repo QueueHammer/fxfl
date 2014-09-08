@@ -23,9 +23,9 @@ FxFl is a convenience library using Angular.js that allows the user to specify t
 
 Set up <divs> for a fixed fluid layout of 250px fixed, while the fluid column to be the remaining 100% of width.
 
-    <div fxfl-pannel>
-      <div fxfl-pannel fxfl-width="250"></div>
-      <div fxfl-pannel fxfl-width="100%"></div>
+    <div fxfl-panel>
+      <div fxfl-panel fxfl-width="250"></div>
+      <div fxfl-panel fxfl-width="100%"></div>
     </div>
 
 
@@ -33,25 +33,25 @@ Set up <divs> for a fixed fluid layout of 250px fixed, while the fluid column to
 
 Set up <divs> for a fixed fluid layout of 250px fixed, while the fluid column to be the remaining 100% of width. Harder than the first with just CSS.
 
-    <div fxfl-pannel>
-      <div fxfl-pannel fxfl-width="200"></div>
-      <div fxfl-pannel fxfl-width="60%"></div>
-      <div fxfl-pannel fxfl-width="200"></div>
-      <div fxfl-pannel fxfl-width="40%"></div>
-      <div fxfl-pannel fxfl-width="200"></div>
+    <div fxfl-panel>
+      <div fxfl-panel fxfl-width="200"></div>
+      <div fxfl-panel fxfl-width="60%"></div>
+      <div fxfl-panel fxfl-width="200"></div>
+      <div fxfl-panel fxfl-width="40%"></div>
+      <div fxfl-panel fxfl-width="200"></div>
     </div>
     
 ###Columns With Rows That Contain Fixed Headers
 
 A fixed column with a fluid container next to it. The fluid column has two rows each with a 50px header with the portion below taking up 50% of the rest of the available space.
 
-    <div fxfl-pannel>
-      <div fxfl-pannel fxfl-width="200"></div>
-      <div fxfl-pannel fxfl-width="100%">
-        <div fxfl-pannel fxfl-height="50"></div>
-        <div fxfl-pannel fxfl-height="50%"></div>
-        <div fxfl-pannel fxfl-height="50"></div>
-        <div fxfl-pannel fxfl-height="50%"></div>
+    <div fxfl-panel>
+      <div fxfl-panel fxfl-width="200"></div>
+      <div fxfl-panel fxfl-width="100%">
+        <div fxfl-panel fxfl-height="50"></div>
+        <div fxfl-panel fxfl-height="50%"></div>
+        <div fxfl-panel fxfl-height="50"></div>
+        <div fxfl-panel fxfl-height="50%"></div>
       </div>
     </div>
 
