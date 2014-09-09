@@ -3,16 +3,16 @@
 <head>
   <link rel="stylesheet" type="text/css" href="css/style.css">
   <meta charset="utf-8">
-  <title>FxFl Hz Demo</title>
+  <title>FxFl Combination Demo #3</title>
 </head>
-<body ng-app="fxfl" class="hz" ng-init="fifty = 50">
+<body ng-app="fxfl" class="vt" ng-init="size">
+  <div>
+    Size: <input type="text" ng-model="size"/>
+  </div>
   <div class="testBox">
     <div fxfl-panel>
-      <div fxfl-panel fxfl-width="200 + fifty"></div>
-      <div fxfl-panel fxfl-width="'6' + '6' + '%'"></div>
-      <div fxfl-panel fxfl-width="5 * 10"></div>
-      <div fxfl-panel fxfl-width="(2 * (20 - 3)) + '%'"></div>
-      <div fxfl-panel fxfl-width="(3 * 25) + fifty"></div>
+      <div fxfl-panel fxfl-width="size + 10">{{size}}</div>
+      <div fxfl-panel fxfl-width="100%">{{size}}</div>
     </div>
   </div>
   <script src="//jashkenas.github.io/underscore/underscore-min.js"></script>

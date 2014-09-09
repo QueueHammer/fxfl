@@ -10,9 +10,8 @@ angular.module('fxfl', [])
       fxflPanelWidth:'@',
       fxflPanelHeight:'@'
     },
-    controller: function ($element, $attrs, $timeout) {
+    controller: function ($scope, $element, $attrs, $timeout) {
       var id = (Math.floor(Math.random() * Math.pow(10, 17))).toString(36);
-      console.log('Controller', id);
       var panels = {};
       var type = '';
       var sizeFunction = function() {
@@ -50,22 +49,33 @@ angular.module('fxfl', [])
           'So only ' + type + ' is allowed'
           ].join(' ');
       });
+        
+      //Has percent regex
+      function testSzie(str) {
+        var regEx = /^(\d+(\.\d+)?)(%)?$/;
+        var result = regEx.exec(str) || [];
+
+        return {
+          match: !!result[0],
+          number: result[1],
+          isPercent: !!result[3]
+        };
+      } 
       
       function setSizes() {
         deriveType();
         //There are no sizes to set if no elements have registered
         if(_.size(panels) === 0) return;
         
-        //Has percent regex
-        var hasPct = /(.+)%/;
+        //Break panels into the two sets we will work with
+        var workingSets = _.groupBy(panels, function (p) {
+          var size = p.getSize();
+          return !testSzie(size).isPercent ? 'fx' : 'fl';
+        });
+        
         
         //Add all the staticly sized panels
-        var staticSize = _.chain(panels)
-        //filter for widths that don't end in %
-        .filter(function (p) {
-          var size = p.getSize();
-          return !hasPct.test(size);
-        })
+        var staticSize = _.chain(workingSets.fx)
         //Update them incase they value changed since last time
         .reduce(function (m, p) {
           //
@@ -81,15 +91,10 @@ angular.module('fxfl', [])
         if(remaining < 0) { remaining = 0; }
         
         //Now work through the relitively spaced elements
-        _.chain(panels)
-        //filter for widths that "do" end in %
-        .filter(function (p) {
-          var width = p.getSize();
-          return hasPct.test(width);
-        })
+        _.chain(workingSets.fl)
         //Now for each take that value and get some of the remaining space
         .each(function (p) {
-          var pct = Number(hasPct.exec(p.getSize())[1]);
+          var pct = Number(testSzie(p.getSize()).number);
           var remPart = Math.floor(remaining * (pct/100));
           p.setSize(remPart);
         });
@@ -130,7 +135,8 @@ angular.module('fxfl', [])
         id:id,
         type: typeIsWidth ? 'width' : 'height',
         getSize:function () {
-          return typeIsWidth ? $attrs.fxflWidth : $attrs.fxflHeight;
+          var val = typeIsWidth ? $attrs.fxflWidth : $attrs.fxflHeight;
+          return testSzie(val).match ? val : $scope.$eval(val);
         },
         setSize:function (s) {
           sizeFunk(s);
