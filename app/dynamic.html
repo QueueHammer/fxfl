@@ -5,13 +5,13 @@
   <meta charset="utf-8">
   <title>FxFl Combination Demo #3</title>
 </head>
-<body ng-app="fxfl" class="vt" ng-init="size">
+<body ng-app="fxfl" class="vt" ng-init="size = 0; scale = 2">
   <div>
     Size: <input type="text" ng-model="size"/>
   </div>
   <div class="testBox">
     <div fxfl-panel>
-      <div fxfl-panel fxfl-width="size + 10">{{size}}</div>
+      <div fxfl-panel fxfl-width="(size + 1) + (100 * scale)">{{size}}</div>
       <div fxfl-panel fxfl-width="100%">{{size}}</div>
     </div>
   </div>

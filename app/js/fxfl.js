@@ -130,19 +130,47 @@ angular.module('fxfl', [])
         return typeIsWidth ? $element.width(s) : $element.height(s);
       };
       
+      function resolveAttrToUseable(str) {
+        
+        console.log(str);
+        return testSzie(str).match ? str : $scope.$parent.$eval(str);
+      }
+      
       //Create the object that will register with the controller
       controller.register({
         id:id,
         type: typeIsWidth ? 'width' : 'height',
         getSize:function () {
           var val = typeIsWidth ? $attrs.fxflWidth : $attrs.fxflHeight;
-          return testSzie(val).match ? val : $scope.$eval(val);
+          return resolveAttrToUseable(val);
         },
         setSize:function (s) {
           sizeFunk(s);
           setSizes();
         }
       });
+      
+      //Setup a watch that will allow updates to be queued during digest
+      $scope.$watch(function () {
+        var val = $attrs.fxflWidth;
+        var ret = resolveAttrToUseable(val);
+        console.log(ret);
+        return ret;
+      }, function (n, o) {
+        console.log('watch', n, o);
+      });
+      /*
+      if(typeIsWidth) {
+        $scope.$watch('$attrs.fxflWidth', function(value){
+            console.log(value);
+        });
+      }
+      else {
+        $scope.$watch('$attrs.fxflHeight', function(value){
+            console.log(value);
+        });
+      }
+      */
     }
   };
 })
