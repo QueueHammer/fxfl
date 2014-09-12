@@ -1,4 +1,4 @@
-/*global angular, _, $, window */
+/*global angular, _, $, window, setTimeout */
 /*jshint -W116 */
 
 angular.module('fxfl', [])
@@ -10,12 +10,49 @@ angular.module('fxfl', [])
       fxflPanelWidth:'@',
       fxflPanelHeight:'@'
     },
-    controller: function ($scope, $element, $attrs, $timeout) {
+    controller: function ($scope, $element, $attrs) {
       var id = (Math.floor(Math.random() * Math.pow(10, 17))).toString(36);
       var panels = {};
       var type = '';
+      var enabled = true;
+      
       var sizeFunction = function() {
         return type == 'width' ? $element.width() : $element.height();
+      };
+      
+      //See if there is a controller above this directive
+      var controller;
+      if ($attrs.fxflWidth || $attrs.fxflHeight) controller = $element.parent().controller('fxflPanel');
+      
+      //----------------------------------------------
+      var startUpdate = _.noop();
+      
+      function primeUpdate() {
+        startUpdate = _.once(function () {
+          setTimeout(function () {
+            doUpdate();
+          });
+        });
+      }
+      
+      //Done in two parts because my editor complained...
+      function doUpdate() {
+            setSizes();
+            primeUpdate();
+      }
+      
+      primeUpdate();
+      //----------------------------------------------
+      
+      this.requestUpdate = function () {
+        //If this is but a step along the chain, propagate
+        if(controller) {
+          controller.requestUpdate();
+          return;
+        }
+        
+        //If this the top of the chain, queue an update
+        startUpdate();
       };
       
       this.register = function (el) {
@@ -26,15 +63,6 @@ angular.module('fxfl', [])
         
         //Add this element to the list of callbacks
         panels[el.id] =  el;
-        
-        /*
-        //When we have a type, if a different one registers error
-        if(type !== el.type) throw [
-          'One type of panel allowed per container.',
-          'This container is already of type: ' + type,
-          'So ' + el.type + ' is therefore not allowed'
-        ].join('\n');
-        */
       };
       
       var deriveType = _.once(function () {
@@ -65,7 +93,7 @@ angular.module('fxfl', [])
       function setSizes() {
         deriveType();
         //There are no sizes to set if no elements have registered
-        if(_.size(panels) === 0) return;
+        if(_.size(panels) === 0 || !enabled) return;
         
         //Break panels into the two sets we will work with
         var workingSets = _.groupBy(panels, function (p) {
@@ -92,7 +120,7 @@ angular.module('fxfl', [])
         
         //Now work through the relitively spaced elements
         _.chain(workingSets.fl)
-        //Now for each take that value and get some of the remaining space
+        //For each take that value and get some of the remaining space
         .each(function (p) {
           var pct = Number(testSzie(p.getSize()).number);
           var remPart = Math.floor(remaining * (pct/100));
@@ -100,15 +128,32 @@ angular.module('fxfl', [])
         });
       }
       
-      //See if there is a controller above this directive
-      var controller = $element.parent().controller('fxflPanel');
+      //Watch to enable and disable the directive
+      $scope.$watch(function () {
+        var attrVal = $attrs.fxflPanel;
+        
+        //If the value is not set we default to enabled
+        if(attrVal === ''  || attrVal === undefined) return true;
+        
+        var ret = $scope.$parent.$eval($attrs.fxflPanel);
+        return ret;
+      }, function (newValue/*, oldValue*/)  {
+        if(newValue) {
+          enabled = true;
+          $element.show();
+        }
+        else {
+          enabled = false;
+          $element.hide();
+        }
+        if(controller) controller.requestUpdate();
+        else startUpdate();
+      });
       
       //If this is the top controller then we will set sizes on window resize
       if(controller === undefined) {
+        //Bind to the global resize event
         $(window).on('resize', _.throttle(setSizes, 50, {leading: false}));
-        $timeout(function () {
-          setSizes();
-        });
         return;
       }
       
@@ -131,9 +176,16 @@ angular.module('fxfl', [])
       };
       
       function resolveAttrToUseable(str) {
+        //If the value of the attribute is useable as is return
+        if(testSzie(str).match) return str;
         
-        console.log(str);
-        return testSzie(str).match ? str : $scope.$parent.$eval(str);
+        //Find any variables and evaluate them with scope
+        str = str.replace(/[A-Za-z]\w*/g, function (match) {
+          return $scope.$parent.$eval(match);
+        });
+        
+        //return the new string
+        return $scope.$parent.$eval(str);
       }
       
       //Create the object that will register with the controller
@@ -141,10 +193,16 @@ angular.module('fxfl', [])
         id:id,
         type: typeIsWidth ? 'width' : 'height',
         getSize:function () {
+          //If the element is not enabled then report 0 to remove it
+          if(!enabled) return 0;
+          
           var val = typeIsWidth ? $attrs.fxflWidth : $attrs.fxflHeight;
           return resolveAttrToUseable(val);
         },
         setSize:function (s) {
+          //If the element is not enabled then dont propagate
+          if(!enabled) return;
+          
           sizeFunk(s);
           setSizes();
         }
@@ -152,26 +210,14 @@ angular.module('fxfl', [])
       
       //Setup a watch that will allow updates to be queued during digest
       $scope.$watch(function () {
-        var val = $attrs.fxflWidth;
-        var ret = resolveAttrToUseable(val);
-        console.log(ret);
-        return ret;
-      }, function (n, o) {
-        console.log('watch', n, o);
+        //Get the value of the attribute we want
+        var val = typeIsWidth ? $attrs.fxflWidth : $attrs.fxflHeight;
+        
+        //Resolve it to a value we will be able to use
+        return resolveAttrToUseable(val);
+      }, function (/*newValue, oldValue*/)  {
+        controller.requestUpdate();
       });
-      /*
-      if(typeIsWidth) {
-        $scope.$watch('$attrs.fxflWidth', function(value){
-            console.log(value);
-        });
-      }
-      else {
-        $scope.$watch('$attrs.fxflHeight', function(value){
-            console.log(value);
-        });
-      }
-      */
     }
   };
-})
-;
+});

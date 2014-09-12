@@ -5,14 +5,19 @@
   <meta charset="utf-8">
   <title>FxFl Combination Demo #3</title>
 </head>
-<body ng-app="fxfl" class="vt" ng-init="size = 0; scale = 2">
+<body ng-app="fxfl" class="vt" ng-init="size = 0; scale = 2;">
   <div>
-    Size: <input type="text" ng-model="size"/>
+    Select width:
+    <input type="radio" ng-model="size" value="50">  50 
+    <input type="radio" ng-model="size" value="100"> 100 
+    <input type="radio" ng-model="size" value="150"> 150
+    / Show Panel: <button ng-click="show = !show">{{show? 'Hide' : 'Show'}}</button>
   </div>
   <div class="testBox">
     <div fxfl-panel>
-      <div fxfl-panel fxfl-width="(size + 1) + (100 * scale)">{{size}}</div>
-      <div fxfl-panel fxfl-width="100%">{{size}}</div>
+      <div fxfl-panel fxfl-width="(size + 1) + (100 * scale)"></div>
+      <div fxfl-panel fxfl-width="100%"></div>
+      <div fxfl-panel="show" fxfl-width="250"></div>
     </div>
   </div>
   <script src="//jashkenas.github.io/underscore/underscore-min.js"></script>
