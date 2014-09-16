@@ -101,6 +101,8 @@ angular.module('fxfl', [])
           return !testSzie(size).isPercent ? 'fx' : 'fl';
         });
         
+        //Queue up the updates to perform
+        var updateValues = {};
         
         //Add all the staticly sized panels
         var staticSize = _.chain(workingSets.fx)
@@ -108,7 +110,7 @@ angular.module('fxfl', [])
         .reduce(function (m, p) {
           //
           var size = p.getSize();
-          p.setSize(size);
+          updateValues[p.id] = size;
           //Accumulate the reserved width
           return m + Number(size);
         }, 0).value();
@@ -123,9 +125,33 @@ angular.module('fxfl', [])
         //For each take that value and get some of the remaining space
         .each(function (p) {
           var pct = Number(testSzie(p.getSize()).number);
-          var remPart = Math.floor(remaining * (pct/100));
-          p.setSize(remPart);
+          var remPart = remaining * (pct/100);
+          updateValues[p.id] = remPart;
         });
+        
+        //Now update the panels according to their values and if they are
+        //this is a width type panel or not.
+        
+        if(type == 'width') {
+            var localHeight = $element.height();
+            _.each($element.children(), function (d) {
+              var el = $(d);
+              el.height(localHeight);
+            }, 0);
+        }
+        
+        _.each(updateValues, function (v, id) {
+          panels[id].setSize(v);
+        });
+        
+        if(type == 'width') {
+          _.reduce($element.children(), function (m, d/*, i*/) {
+            var el = $(d);
+            el.css({left: m});
+            m = m + el.width();
+            return m;
+          }, 0);
+        }
       }
       
       //Watch to enable and disable the directive
@@ -202,7 +228,6 @@ angular.module('fxfl', [])
         setSize:function (s) {
           //If the element is not enabled then dont propagate
           if(!enabled) return;
-          
           sizeFunk(s);
           setSizes();
         }
